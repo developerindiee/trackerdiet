@@ -12,11 +12,26 @@
 <body class="min-h-screen flex flex-col bg-gradient-to-br from-black via-black to-red-900 text-white">
 
   <!-- ✅ Navbar -->
-  <nav class="flex items-center justify-between px-6 py-4 bg-black/50 backdrop-blur">
-    <h1 class="text-xl font-bold text-red-500">My Tracker Diet</h1>
-    <div class="space-x-4">
-      <a href="register.html" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Register</a>
-      <a href="login.html" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 rounded">Login</a>
+  <nav class="bg-black/50 backdrop-blur px-6 py-4">
+    <div class="flex items-center justify-between max-w-7xl mx-auto">
+      <h1 class="text-xl font-bold text-red-500">My Tracker Diet</h1>
+      <button id="menuBtn" class="text-gray-300 sm:hidden focus:outline-none">
+        <!-- ICON HAMBURGER -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <!-- MENU LINKS (Desktop) -->
+      <div id="menuLinks" class="hidden sm:flex space-x-4">
+        <a href="register.html" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Register</a>
+        <a href="login.html" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 rounded">Login</a>
+      </div>
+    </div>
+    <!-- MENU LINKS (Mobile) -->
+    <div id="mobileMenu" class="sm:hidden hidden flex-col space-y-2 mt-4 transition-all duration-300 ease-in-out">
+      <a href="register.html" class="block w-full text-center px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Register</a>
+      <a href="login.html" class="block w-full text-center px-4 py-2 bg-sky-600 hover:bg-sky-700 rounded">Login</a>
     </div>
   </nav>
 
@@ -62,6 +77,16 @@
     </div>
     &copy; 2025 My Tracker Diet
   </footer>
+
+  <!-- ✅ Script Toggler -->
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  </script>
 
 </body>
 </html>
