@@ -10,12 +10,125 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif; /* ✅ FONT FIX */
+  <!-- ✅ Proteksi: Cek Auth -->
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        console.log('🚫 Tidak ada user login, redirect ke login.html');
+        window.location.href = 'login.html'; // Paksa redirect
+      } else {
+        console.log('✅ User terverifikasi:', user.email);
+        renderCharts(); // Panggil charts kalau user valid
+      }
+    });
+
+    function renderCharts() {
+      function getHistoryKeys(prefix) {
+        return Object.keys(localStorage).filter(k => k.startsWith(prefix)).sort();
+      }
+
+      function getTotals(prefix) {
+        return getHistoryKeys(prefix).map(k => {
+          const data = JSON.parse(localStorage.getItem(k));
+          let total = 0;
+          if (Array.isArray(data)) {
+            data.forEach(row => {
+              total += +row.kalori || 0;
+            });
+          }
+          return total;
+        });
+      }
+
+      function getLabels(prefix) {
+        return getHistoryKeys(prefix).map(k => k.replace(prefix + "-", ""));
+      }
+
+      // FOOD Chart
+      new Chart(document.getElementById('foodChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: getLabels("foodTracker"),
+          datasets: [{
+            label: 'Total Kalori (Food)',
+            data: getTotals("foodTracker"),
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: 'white' } }
+          },
+          scales: {
+            x: { ticks: { color: 'white' } },
+            y: { ticks: { color: 'white' } }
+          }
+        }
+      });
+
+      // GYM Chart
+      new Chart(document.getElementById('gymChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: getLabels("gymTracker"),
+          datasets: [{
+            label: 'Kalori Terbakar (Gym)',
+            data: getTotals("gymTracker"),
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: 'white' } }
+          },
+          scales: {
+            x: { ticks: { color: 'white' } },
+            y: { ticks: { color: 'white' } }
+          }
+        }
+      });
+
+      // CARDIO Chart
+      new Chart(document.getElementById('cardioChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: getLabels("cardioTracker"),
+          datasets: [{
+            label: 'Kalori Terbakar (Cardio)',
+            data: getTotals("cardioTracker"),
+            borderColor: 'rgb(255, 206, 86)',
+            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: 'white' } }
+          },
+          scales: {
+            x: { ticks: { color: 'white' } },
+            y: { ticks: { color: 'white' } }
+          }
+        }
+      });
     }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
+
 <body class="bg-black text-white min-h-screen flex flex-col p-4">
   <div class="w-full max-w-5xl mx-auto flex-grow">
     <h1 class="text-3xl font-extrabold mb-6 text-center text-red-500">📊 Progress Harian</h1>
@@ -31,106 +144,10 @@
     </div>
 
     <div class="text-center">
-      <a href="beranda.html" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">⬅️ Kembali ke Dashboard</a>
+      <a href="beranda.html" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">
+        ⬅️ Kembali ke Dashboard
+      </a>
     </div>
   </div>
-
-  <script>
-    function getHistoryKeys(prefix) {
-      return Object.keys(localStorage).filter(k => k.startsWith(prefix)).sort();
-    }
-
-    function getTotals(prefix) {
-      return getHistoryKeys(prefix).map(k => {
-        const data = JSON.parse(localStorage.getItem(k));
-        let total = 0;
-        if (Array.isArray(data)) {
-          data.forEach(row => {
-            total += +row.kalori || 0;
-          });
-        }
-        return total;
-      });
-    }
-
-    function getLabels(prefix) {
-      return getHistoryKeys(prefix).map(k => k.replace(prefix + "-", ""));
-    }
-
-    // FOOD Chart
-    new Chart(document.getElementById('foodChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: getLabels("foodTracker"),
-        datasets: [{
-          label: 'Total Kalori (Food)',
-          data: getTotals("foodTracker"),
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: 'white' } }
-        },
-        scales: {
-          x: { ticks: { color: 'white' } },
-          y: { ticks: { color: 'white' } }
-        }
-      }
-    });
-
-    // GYM Chart
-    new Chart(document.getElementById('gymChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: getLabels("gymTracker"),
-        datasets: [{
-          label: 'Kalori Terbakar (Gym)',
-          data: getTotals("gymTracker"),
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: 'white' } }
-        },
-        scales: {
-          x: { ticks: { color: 'white' } },
-          y: { ticks: { color: 'white' } }
-        }
-      }
-    });
-
-    // CARDIO Chart
-    new Chart(document.getElementById('cardioChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: getLabels("cardioTracker"),
-        datasets: [{
-          label: 'Kalori Terbakar (Cardio)',
-          data: getTotals("cardioTracker"),
-          borderColor: 'rgb(255, 206, 86)',
-          backgroundColor: 'rgba(255, 206, 86, 0.2)',
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: 'white' } }
-        },
-        scales: {
-          x: { ticks: { color: 'white' } },
-          y: { ticks: { color: 'white' } }
-        }
-      }
-    });
-  </script>
 </body>
 </html>

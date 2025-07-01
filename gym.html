@@ -9,6 +9,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- ✅ Proteksi Login -->
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        console.log('🚫 Belum login ➜ redirect ke login.html');
+        window.location.href = 'login.html';
+      } else {
+        console.log('✅ User login:', user.email);
+      }
+    });
+  </script>
+
   <style>
     body {
       overflow-x: hidden;
@@ -66,7 +81,14 @@
 
     <!-- History -->
     <h2 class="text-lg font-bold mb-2 text-red-500">📅 History Latihan</h2>
-    <div id="historyList" class="flex flex-wrap gap-2 text-sm"></div>
+    <div id="historyList" class="flex flex-wrap gap-2 text-sm mb-6"></div>
+
+    <!-- ✅ Tombol Back ke Dashboard -->
+    <div class="text-center">
+      <a href="beranda.html" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">
+        ⬅️ Kembali ke Dashboard
+      </a>
+    </div>
   </div>
 
   <script>
