@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Tracker Harian</title>
+
+  <!-- ✅ Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif; /* ✅ FONT FIX */
+    }
+    table { border-collapse: collapse; }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col p-4">
+
+  <!-- ✅ Container full width + padding -->
+  <div class="w-full max-w-5xl mx-auto px-4 flex-grow">
+    <!-- ✅ Judul bener-bener di tengah -->
+    <h1 class="w-full block text-center mx-auto font-extrabold mb-6 break-words leading-tight sm:text-3xl text-2xl">
+      🔥 Food Tracker Harian 🔥
+    </h1>
+
+    <!-- ✅ Table scroll wrapper -->
+    <div class="w-full overflow-x-auto mb-4 rounded-lg">
+      <table class="w-full min-w-max border border-gray-700 bg-gray-900 rounded text-xs">
+        <thead class="bg-gray-800 text-white">
+          <tr class="border-b border-red-500">
+            <th class="border px-2 py-2">No</th>
+            <th class="border px-2 py-2">Nama</th>
+            <th class="border px-2 py-2">Jumlah</th>
+            <th class="border px-2 py-2">Kalori</th>
+            <th class="border px-2 py-2">Lemak</th>
+            <th class="border px-2 py-2">Karbo</th>
+            <th class="border px-2 py-2">Protein</th>
+            <th class="border px-2 py-2">Serat</th>
+            <th class="border px-2 py-2">Catatan</th>
+            <th class="border px-2 py-2">Hapus</th>
+          </tr>
+        </thead>
+        <tbody id="mainTable"></tbody>
+      </table>
+    </div>
+
+    <!-- ✅ Total -->
+    <div class="bg-gray-800 p-4 rounded mb-6">
+      <h2 class="text-sm mb-2 font-bold text-red-500">Total Nutrisi:</h2>
+      <p id="totals" class="text-sm">Kalori: 0 | Lemak: 0 | Karbo: 0 | Protein: 0 | Serat: 0</p>
+    </div>
+
+    <!-- ✅ Buttons -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <button onclick="addMainRow()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">
+        ➕ Tambah Baris
+      </button>
+      <button onclick="saveData()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded shadow">
+        💾 Simpan Data
+      </button>
+    </div>
+
+    <!-- ✅ Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow hidden">
+      ✅ Data berhasil disimpan!
+    </div>
+
+    <!-- ✅ History -->
+    <h2 class="text-lg font-bold mb-2 text-red-500">📅 History Diet Kamu</h2>
+    <div id="historyList" class="flex flex-wrap gap-2 text-sm"></div>
+  </div>
+
+  <script>
+    const foodDatabase = {
+      "ayam": { kalori: 165, lemak: 3.6, karbo: 0, protein: 31, serat: 0 },
+      "nasi putih": { kalori: 130, lemak: 0.3, karbo: 28, protein: 2.7, serat: 0.4 },
+      "telur": { kalori: 68, lemak: 4.8, karbo: 0.4, protein: 5.5, serat: 0 },
+      "brokoli": { kalori: 34, lemak: 0.4, karbo: 6.6, protein: 2.8, serat: 2.6 },
+    };
+
+    function getTodayKey() {
+      const today = new Date();
+      return `foodTracker-${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    }
+
+    function addMainRow(data = {}) {
+      const table = document.getElementById("mainTable");
+      const rowCount = table.rows.length + 1;
+      const row = table.insertRow();
+      row.classList.add("hover:bg-gray-800");
+      row.innerHTML = `
+        <td class="border px-1 py-1 text-center">${rowCount}</td>
+        <td class="border px-1 py-1"><input type="text" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Nama" onblur="fetchLocalNutrition(this)" value="${data.nama || ''}"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Jumlah" value="${data.jumlah || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Kalori" value="${data.kalori || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Lemak" value="${data.lemak || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Karbo" value="${data.karbo || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Protein" value="${data.protein || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="number" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Serat" value="${data.serat || ''}" oninput="updateTotals()"/></td>
+        <td class="border px-1 py-1"><input type="text" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+          placeholder="Catatan" value="${data.catatan || ''}"/></td>
+        <td class="border px-1 py-1 text-center">
+          <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700">🗑️</button>
+        </td>
+      `;
+      updateTotals();
+    }
+
+    function deleteRow(btn) {
+      btn.closest('tr').remove();
+      resetRowNumbers();
+      updateTotals();
+    }
+
+    function resetRowNumbers() {
+      document.querySelectorAll("#mainTable tr").forEach((row, idx) => {
+        row.cells[0].textContent = idx + 1;
+      });
+    }
+
+    function fetchLocalNutrition(input) {
+      const name = input.value.trim().toLowerCase();
+      const nutrition = foodDatabase[name];
+      const row = input.closest('tr');
+      if (!nutrition) return;
+      row.cells[3].querySelector('input').value = nutrition.kalori;
+      row.cells[4].querySelector('input').value = nutrition.lemak;
+      row.cells[5].querySelector('input').value = nutrition.karbo;
+      row.cells[6].querySelector('input').value = nutrition.protein;
+      row.cells[7].querySelector('input').value = nutrition.serat;
+      updateTotals();
+    }
+
+    function updateTotals() {
+      let k=0,l=0,ka=0,p=0,s=0;
+      document.querySelectorAll("#mainTable tr").forEach(row => {
+        k+=+row.cells[3].querySelector('input').value||0;
+        l+=+row.cells[4].querySelector('input').value||0;
+        ka+=+row.cells[5].querySelector('input').value||0;
+        p+=+row.cells[6].querySelector('input').value||0;
+        s+=+row.cells[7].querySelector('input').value||0;
+      });
+      document.getElementById("totals").textContent=`Kalori: ${k} | Lemak: ${l} | Karbo: ${ka} | Protein: ${p} | Serat: ${s}`;
+    }
+
+    function saveData() {
+      const rows = [...document.querySelectorAll("#mainTable tr")].map(row => ({
+        nama: row.cells[1].querySelector('input').value,
+        jumlah: row.cells[2].querySelector('input').value,
+        kalori: row.cells[3].querySelector('input').value,
+        lemak: row.cells[4].querySelector('input').value,
+        karbo: row.cells[5].querySelector('input').value,
+        protein: row.cells[6].querySelector('input').value,
+        serat: row.cells[7].querySelector('input').value,
+        catatan: row.cells[8].querySelector('input').value,
+      }));
+      localStorage.setItem(getTodayKey(),JSON.stringify(rows));
+      showToast(); generateHistoryList();
+    }
+
+    function loadTodayData(){
+      const saved=JSON.parse(localStorage.getItem(getTodayKey())||'[]');
+      document.getElementById("mainTable").innerHTML='';
+      saved.forEach(addMainRow); if(!saved.length)addMainRow(); updateTotals();
+    }
+
+    function generateHistoryList(){
+      const d=document.getElementById('historyList'); d.innerHTML='';
+      Object.keys(localStorage).filter(k=>k.startsWith('foodTracker-')).sort().reverse().forEach(k=>{
+        const b=document.createElement('button');
+        b.className='px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded shadow';
+        b.textContent=`📅 ${k.replace('foodTracker-','')}`;
+        b.onclick=()=>loadHistoryData(k); d.appendChild(b);
+      });
+    }
+
+    function loadHistoryData(k){
+      const s=JSON.parse(localStorage.getItem(k)||'[]');
+      document.getElementById("mainTable").innerHTML='';
+      s.forEach(addMainRow); updateTotals();
+    }
+
+    function showToast(){
+      const t=document.getElementById('toast'); t.classList.remove('hidden');
+      setTimeout(()=>t.classList.add('hidden'),2000);
+    }
+
+    window.onload=()=>{loadTodayData();generateHistoryList();};
+  </script>
+</body>
+</html>

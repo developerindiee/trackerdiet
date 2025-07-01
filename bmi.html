@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kalkulator BMI - Standar Indonesia</title>
+
+  <!-- ✅ Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-black text-white min-h-screen flex flex-col p-4">
+  <div class="max-w-lg mx-auto w-full">
+    <h1 class="text-3xl font-extrabold mb-6 text-center text-red-500">⚖️ Kalkulator BMI</h1>
+
+    <form id="bmiForm" class="space-y-4">
+      <div>
+        <label class="block mb-1 text-sm">Umur (tahun)</label>
+        <input type="number" id="umur" class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700" placeholder="Misal 25" required>
+      </div>
+      <div>
+        <label class="block mb-1 text-sm">Berat Badan (kg)</label>
+        <input type="number" id="berat" class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700" placeholder="Misal 70" required>
+      </div>
+      <div>
+        <label class="block mb-1 text-sm">Tinggi Badan (cm)</label>
+        <input type="number" id="tinggi" class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700" placeholder="Misal 170" required>
+      </div>
+      <div>
+        <label class="block mb-1 text-sm">Tujuan Kamu</label>
+        <select id="tujuan" class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700">
+          <option value="maintain">Pertahankan Berat</option>
+          <option value="kurus">Kurusin Badan</option>
+          <option value="gemuk">Gemukin Badan</option>
+        </select>
+      </div>
+      <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded shadow">Hitung BMI</button>
+    </form>
+
+    <div id="result" class="mt-6 bg-gray-900 p-4 rounded hidden">
+      <h2 class="text-xl font-bold mb-2 text-green-500">Hasil:</h2>
+      <p id="bmiValue" class="mb-1"></p>
+      <p id="bmiCategory" class="mb-1"></p>
+      <p id="bmiIdeal" class="mb-1"></p>
+      <p id="brocaIdeal" class="mb-1"></p>
+      <p id="bmiAdvice" class="mb-1"></p>
+      <p id="bmiGoalAdvice" class="font-semibold text-yellow-400"></p>
+
+      <div id="nutritionAdvice" class="mt-4"></div>
+
+      <p class="mt-4 text-xs text-gray-400">
+        ⚖️ Standar BMI menggunakan klasifikasi WHO Asia-Pacific (18.5–22.9).  
+        Rumus Broca adalah alternatif praktis untuk populasi Indonesia.
+      </p>
+
+      <!-- ✅ Download PDF -->
+      <button onclick="downloadBMI()" class="mt-4 w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded shadow">
+        ⬇️ Download Hasil PDF
+      </button>
+    </div>
+
+    <div class="text-center mt-6">
+      <a href="beranda.html" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">⬅️ Kembali ke Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('bmiForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const umur = parseInt(document.getElementById('umur').value);
+      const berat = parseFloat(document.getElementById('berat').value);
+      const tinggiCm = parseFloat(document.getElementById('tinggi').value);
+      const tujuan = document.getElementById('tujuan').value;
+
+      const tinggiM = tinggiCm / 100;
+      const bmi = berat / (tinggiM * tinggiM);
+
+      let kategori = "";
+      if (bmi < 18.5) kategori = "Kurus";
+      else if (bmi >= 18.5 && bmi <= 22.9) kategori = "Normal";
+      else if (bmi >= 23 && bmi <= 24.9) kategori = "Overweight";
+      else if (bmi >= 25) kategori = "Obesitas";
+
+      const idealMin = 18.5 * tinggiM * tinggiM;
+      const idealMax = 22.9 * tinggiM * tinggiM;
+      const broca = (tinggiCm - 100) - (0.1 * (tinggiCm - 100));
+
+      let sistemSaran = "";
+      if (bmi < 18.5) sistemSaran = "Gemukin Badan";
+      else if (bmi >= 23) sistemSaran = "Kurusin Badan";
+      else sistemSaran = "Pertahankan Berat";
+
+      let cocok = "";
+      if (tujuan === "kurus" && sistemSaran === "Kurusin Badan") cocok = "✅ Tujuan kamu sudah tepat.";
+      else if (tujuan === "gemuk" && sistemSaran === "Gemukin Badan") cocok = "✅ Tujuan kamu sudah tepat.";
+      else if (tujuan === "maintain" && sistemSaran === "Pertahankan Berat") cocok = "✅ Pertahankan, kamu sudah di jalur benar.";
+      else cocok = "⚠️ Pertimbangkan untuk menyesuaikan tujuan agar lebih sesuai kondisi BMI kamu.";
+
+      // 🗒️ Saran Kalori & Makro ➜ simple estimate: 30kcal/kg BB, protein 1.2-2g/kg, lemak 0.8-1g/kg, sisanya karbo
+      let kalori = berat * 30;
+      if (sistemSaran === "Gemukin Badan") kalori += 300;
+      if (sistemSaran === "Kurusin Badan") kalori -= 300;
+
+      const protein = berat * 1.8;
+      const lemak = berat * 0.8;
+      const karbo = (kalori - (protein * 4) - (lemak * 9)) / 4;
+
+      const nutrisiHTML = `
+        <h3 class="text-lg font-bold text-blue-400 mb-1">💡 Saran Nutrisi Harian</h3>
+        <p>Total Kalori: ~${kalori.toFixed(0)} kcal / hari</p>
+        <p>Protein: ~${protein.toFixed(0)} gram</p>
+        <p>Lemak: ~${lemak.toFixed(0)} gram</p>
+        <p>Karbohidrat: ~${karbo.toFixed(0)} gram</p>
+      `;
+      document.getElementById('nutritionAdvice').innerHTML = nutrisiHTML;
+
+      document.getElementById('bmiValue').textContent = `BMI Kamu: ${bmi.toFixed(1)} (Umur: ${umur} tahun)`;
+      document.getElementById('bmiCategory').textContent = `Kategori: ${kategori}`;
+      document.getElementById('bmiIdeal').textContent = `Berat Ideal (BMI Asia): ${idealMin.toFixed(1)} kg - ${idealMax.toFixed(1)} kg`;
+      document.getElementById('brocaIdeal').textContent = `Berat Ideal (Broca): ${broca.toFixed(1)} kg`;
+      document.getElementById('bmiAdvice').textContent = `Saran Sistem: Kamu sebaiknya ${sistemSaran}.`;
+      document.getElementById('bmiGoalAdvice').textContent = cocok;
+
+      document.getElementById('result').classList.remove('hidden');
+    });
+
+    async function downloadBMI() {
+      const element = document.getElementById('result');
+      html2canvas(element).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF();
+        pdf.addImage(imgData, 'PNG', 10, 10, 180, 0);
+        pdf.save(`BMI-Report-${new Date().toISOString().slice(0,10)}.pdf`);
+      });
+    }
+  </script>
+</body>
+</html>

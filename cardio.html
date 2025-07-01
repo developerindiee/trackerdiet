@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cardio Tracker Harian</title>
+
+  <!-- ✅ Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif; /* ✅ FONT FIX */
+    }
+    table { border-collapse: collapse; }
+  </style>
+</head>
+
+<body class="bg-black text-white min-h-screen flex flex-col p-4">
+  <div class="w-full max-w-5xl mx-auto px-4 flex-grow">
+    <h1 class="w-full block text-center mx-auto font-extrabold mb-6 break-words leading-tight sm:text-3xl text-2xl">
+      🏃‍♂️ Cardio Tracker Harian
+    </h1>
+
+    <!-- Tabel Cardio -->
+    <div class="w-full overflow-x-auto mb-4 rounded-lg">
+      <table class="w-full min-w-max border border-gray-700 bg-gray-900 rounded text-xs">
+        <thead class="bg-gray-800 text-white">
+          <tr class="border-b border-red-500">
+            <th class="border px-2 py-2">No</th>
+            <th class="border px-2 py-2">Jenis Kardio</th>
+            <th class="border px-2 py-2">Jarak (km)</th>
+            <th class="border px-2 py-2">Langkah</th>
+            <th class="border px-2 py-2">Avg Pace (min/km)</th>
+            <th class="border px-2 py-2">Avg HR (bpm)</th>
+            <th class="border px-2 py-2">Kalori Terbakar</th>
+            <th class="border px-2 py-2">Catatan</th>
+            <th class="border px-2 py-2">Hapus</th>
+          </tr>
+        </thead>
+        <tbody id="cardioTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Total Kalori Terbakar -->
+    <div class="bg-gray-800 p-4 rounded mb-6">
+      <h2 class="text-sm mb-2 font-bold text-red-500">Total Kalori Terbakar:</h2>
+      <p id="totalBurned" class="text-sm">0 kalori</p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <button onclick="addCardioRow()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded shadow">
+        ➕ Tambah Sesi
+      </button>
+      <button onclick="saveCardioData()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded shadow">
+        💾 Simpan Data
+      </button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow hidden">
+      ✅ Data cardio disimpan!
+    </div>
+
+    <!-- History -->
+    <h2 class="text-lg font-bold mb-2 text-red-500">📅 History Cardio</h2>
+    <div id="historyList" class="flex flex-wrap gap-2 text-sm"></div>
+  </div>
+
+  <script>
+    let cardioData = [];
+
+    function getCardioKey() {
+      const today = new Date();
+      return `cardioTracker-${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    }
+
+    function addCardioRow(data = {}) {
+      cardioData.push({
+        jenis: data.jenis || '',
+        jarak: data.jarak || '',
+        langkah: data.langkah || '',
+        pace: data.pace || '',
+        hr: data.hr || '',
+        kalori: data.kalori || '',
+        catatan: data.catatan || ''
+      });
+      renderCardioTable();
+    }
+
+    function deleteCardioRow(index) {
+      cardioData.splice(index, 1);
+      renderCardioTable();
+    }
+
+    function renderCardioTable() {
+      const table = document.getElementById("cardioTable");
+      table.innerHTML = "";
+      let total = 0;
+
+      cardioData.forEach((row, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-gray-800";
+
+        tr.innerHTML = `
+          <td class="border px-1 py-1 text-center">${idx+1}</td>
+          <td class="border px-1 py-1"><input type="text" value="${row.jenis}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Jenis Kardio" onchange="updateCardioRow(${idx}, 'jenis', this.value)"/></td>
+          <td class="border px-1 py-1"><input type="number" step="0.01" value="${row.jarak}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Jarak" onchange="updateCardioRow(${idx}, 'jarak', this.value)"/></td>
+          <td class="border px-1 py-1"><input type="number" value="${row.langkah}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Langkah" onchange="updateCardioRow(${idx}, 'langkah', this.value)"/></td>
+          <td class="border px-1 py-1"><input type="number" step="0.01" value="${row.pace}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Avg Pace" onchange="updateCardioRow(${idx}, 'pace', this.value)"/></td>
+          <td class="border px-1 py-1"><input type="number" value="${row.hr}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Avg HR" onchange="updateCardioRow(${idx}, 'hr', this.value)"/></td>
+          <td class="border px-1 py-1"><input type="number" value="${row.kalori}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Kalori" onchange="updateCardioRow(${idx}, 'kalori', this.value); updateTotalBurned();"/></td>
+          <td class="border px-1 py-1"><input type="text" value="${row.catatan}" class="w-full bg-black text-white border border-gray-700 rounded px-1 py-1"
+            placeholder="Catatan" onchange="updateCardioRow(${idx}, 'catatan', this.value)"/></td>
+          <td class="border px-1 py-1 text-center">
+            <button onclick="deleteCardioRow(${idx})" class="text-red-500 hover:text-red-700">🗑️</button>
+          </td>
+        `;
+        table.appendChild(tr);
+
+        total += +row.kalori || 0;
+      });
+
+      document.getElementById("totalBurned").textContent = `${total} kalori`;
+    }
+
+    function updateCardioRow(index, field, value) {
+      cardioData[index][field] = value;
+    }
+
+    function saveCardioData() {
+      localStorage.setItem(getCardioKey(), JSON.stringify(cardioData));
+      showToast(); generateCardioHistory();
+    }
+
+    function loadTodayCardio() {
+      const saved = JSON.parse(localStorage.getItem(getCardioKey()) || '[]');
+      cardioData = saved;
+      if (!cardioData.length) addCardioRow();
+      renderCardioTable();
+    }
+
+    function generateCardioHistory() {
+      const d = document.getElementById('historyList'); d.innerHTML = '';
+      Object.keys(localStorage).filter(k => k.startsWith('cardioTracker-')).sort().reverse().forEach(k => {
+        const b = document.createElement('button');
+        b.className = 'px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded shadow';
+        b.textContent = `📅 ${k.replace('cardioTracker-','')}`;
+        b.onclick = () => loadCardioHistory(k);
+        d.appendChild(b);
+      });
+    }
+
+    function loadCardioHistory(k) {
+      const s = JSON.parse(localStorage.getItem(k) || '[]');
+      cardioData = s;
+      renderCardioTable();
+    }
+
+    function updateTotalBurned() {
+      let total = 0;
+      cardioData.forEach(row => {
+        total += +row.kalori || 0;
+      });
+      document.getElementById("totalBurned").textContent = `${total} kalori`;
+    }
+
+    function showToast() {
+      const t = document.getElementById('toast'); t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2000);
+    }
+
+    window.onload = () => { loadTodayCardio(); generateCardioHistory(); };
+  </script>
+</body>
+</html>

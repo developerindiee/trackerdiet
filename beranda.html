@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Tracker Dashboard</title>
+  <link rel="icon" href="images.png" type="image/png">
+
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000000 50%, #8B0000 80%, #0f172a 100%);
+      /* Hitam dominan, lalu ke merah gelap, lalu aksen biru tua */
+    }
+    #loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #ef4444;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body class="text-white min-h-screen flex flex-col">
+
+  <!-- Loader overlay -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50">
+    <div id="loader"></div>
+    <p class="mt-4 text-lg text-red-500 font-bold">Semangat Transformasinya!</p>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="w-full z-20 bg-black bg-opacity-90">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 text-xl font-bold text-red-500 pl-2 md:pl-4">
+            ⚡ My Tracker
+          </div>
+        </div>
+        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex flex-col items-center justify-center text-center px-4 py-10">
+    <h1 class="text-3xl md:text-4xl font-extrabold mb-4 text-white">Welcome to Your Daily Tracker</h1>
+    <p class="text-gray-400 mb-8">Pilih tracker sesuai kebutuhan kamu:</p>
+    <div class="flex flex-col gap-4 w-full max-w-xs">
+      <a href="food.html" class="block w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 rounded shadow text-lg">🍽️ Food Tracker</a>
+      <a href="gym.html" class="block w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 rounded shadow text-lg">🏋️ Gym Tracker</a>
+      <a href="cardio.html" class="block w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 rounded shadow text-lg">🏃 Cardio Tracker</a>
+      <a href="progress.html" class="block w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 rounded shadow text-lg">📊 Progress Chart</a>
+      <a href="bmi.html" class="block w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 rounded shadow text-lg">⚖️ Kalkulator BMI</a>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script type="module">
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { app } from './firebase-config.js';
+    const auth = getAuth(app);
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    });
+  </script>
+
+</body>
+</html>
