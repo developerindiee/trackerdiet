@@ -104,7 +104,6 @@
       else if (tujuan === "maintain" && sistemSaran === "Pertahankan Berat") cocok = "✅ Pertahankan, kamu sudah di jalur benar.";
       else cocok = "⚠️ Pertimbangkan untuk menyesuaikan tujuan agar lebih sesuai kondisi BMI kamu.";
 
-      // 🗒️ Saran Kalori & Makro ➜ simple estimate
       let kalori = berat * 30;
       if (sistemSaran === "Gemukin Badan") kalori += 300;
       if (sistemSaran === "Kurusin Badan") kalori -= 300;
@@ -119,65 +118,22 @@
         <p>Protein: ~${protein.toFixed(0)} gram</p>
         <p>Lemak: ~${lemak.toFixed(0)} gram</p>
         <p>Karbohidrat: ~${karbo.toFixed(0)} gram</p>
+        <div class="mt-2">
+          <h4 class="font-bold text-green-400 mb-1">Contoh Menu Low Budget:</h4>
+          <ul class="list-disc list-inside text-sm">
+            <li>Nasi Putih, Tahu Tempe, Telur Rebus</li>
+            <li>Sayur Bening / Tumis Kangkung</li>
+            <li>Air Putih, Buah Lokal (Pisang/ Pepaya)</li>
+          </ul>
+          <h4 class="font-bold text-yellow-400 mt-2 mb-1">Contoh Menu Premium:</h4>
+          <ul class="list-disc list-inside text-sm">
+            <li>Oatmeal, Greek Yogurt, Almonds</li>
+            <li>Salmon Fillet, Brokoli Rebus, Quinoa</li>
+            <li>Smoothie Buah Segar + Chia Seed</li>
+          </ul>
+        </div>
       `;
-
-      // ✅ Saran Menu Harian (Low Budget & Lumayan Mahal)
-      let menuMakanan = "";
-      if (sistemSaran === "Gemukin Badan") {
-        menuMakanan = `
-          <h3 class="text-lg font-bold text-green-400 mt-4 mb-1">🍽️ Saran Makanan Gemukin Badan</h3>
-          <p class="font-semibold text-sm mb-1">Low Budget:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🍳 Telur, tahu, tempe goreng</li>
-            <li>🍚 Nasi putih/merah porsi cukup</li>
-            <li>🥜 Kacang tanah sangrai</li>
-            <li>🍌 Pisang, alpukat lokal</li>
-            <li>🥛 Susu UHT biasa</li>
-          </ul>
-          <p class="font-semibold text-sm mt-2 mb-1">Lumayan Mahal:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🥩 Daging sapi premium, salmon</li>
-            <li>🍞 Roti gandum, granola</li>
-            <li>🥑 Alpukat impor, kacang almond</li>
-            <li>🍶 Greek yoghurt, susu full cream high protein</li>
-          </ul>
-        `;
-      } else if (sistemSaran === "Kurusin Badan") {
-        menuMakanan = `
-          <h3 class="text-lg font-bold text-red-400 mt-4 mb-1">🥗 Saran Makanan Kurusin Badan</h3>
-          <p class="font-semibold text-sm mb-1">Low Budget:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🥦 Sayuran rebus: bayam, kangkung, brokoli</li>
-            <li>🍗 Dada ayam rebus, ikan kembung</li>
-            <li>🍚 Nasi merah/beras jagung</li>
-            <li>🍎 Apel lokal, pepaya</li>
-          </ul>
-          <p class="font-semibold text-sm mt-2 mb-1">Lumayan Mahal:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🥗 Salad sayur organik, quinoa</li>
-            <li>🐟 Salmon panggang, tuna fillet</li>
-            <li>🍓 Berry, kiwi, buah impor rendah gula</li>
-          </ul>
-        `;
-      } else {
-        menuMakanan = `
-          <h3 class="text-lg font-bold text-yellow-400 mt-4 mb-1">🍏 Saran Makanan Pertahankan Berat</h3>
-          <p class="font-semibold text-sm mb-1">Low Budget:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🍚 Nasi secukupnya, telur, tempe</li>
-            <li>🥗 Sayur rebus & lalapan segar</li>
-            <li>🍎 Buah lokal musiman</li>
-          </ul>
-          <p class="font-semibold text-sm mt-2 mb-1">Lumayan Mahal:</p>
-          <ul class="list-disc list-inside text-sm space-y-1">
-            <li>🥗 Mixed salad, roti gandum</li>
-            <li>🥩 Daging tanpa lemak, ikan fillet</li>
-            <li>🍇 Buah impor, kacang almond, Greek yoghurt</li>
-          </ul>
-        `;
-      }
-
-      document.getElementById('nutritionAdvice').innerHTML = nutrisiHTML + menuMakanan;
+      document.getElementById('nutritionAdvice').innerHTML = nutrisiHTML;
 
       document.getElementById('bmiValue').textContent = `BMI Kamu: ${bmi.toFixed(1)} (Umur: ${umur} tahun)`;
       document.getElementById('bmiCategory').textContent = `Kategori: ${kategori}`;
@@ -191,10 +147,28 @@
 
     async function downloadBMI() {
       const element = document.getElementById('result');
-      html2canvas(element).then(canvas => {
+      html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      }).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jspdf.jsPDF();
-        pdf.addImage(imgData, 'PNG', 10, 10, 180, 0);
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        let position = 0;
+        if (pdfHeight < pdf.internal.pageSize.getHeight()) {
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        } else {
+          while (position < pdfHeight) {
+            pdf.addImage(imgData, 'PNG', 0, position * -1, pdfWidth, pdfHeight);
+            position += pdf.internal.pageSize.getHeight();
+            if (position < pdfHeight) pdf.addPage();
+          }
+        }
         pdf.save(`BMI-Report-${new Date().toISOString().slice(0,10)}.pdf`);
       });
     }
